@@ -1,6 +1,10 @@
 '''
 Udacity CarND semantic segmentation submission
 Brian Erickson
+
+The vgg model is based on the paper at
+https://people.eecs.berkeley.edu/~jonlong/long_shelhamer_fcn.pdf
+
 '''
 
 import os.path
@@ -12,9 +16,9 @@ import project_tests as tests
 
 
 # Check TensorFlow Version
-assert LooseVersion(tf.__version__) >= LooseVersion('1.0'), \
-    'Please use TensorFlow version 1.0 or newer.  You are using {}'.format(tf.__version__)
-print('TensorFlow Version: {}'.format(tf.__version__))
+#assert LooseVersion(tf.__version__) >= LooseVersion('1.0'), \
+#    'Please use TensorFlow version 1.0 or newer.  You are using {}'.format(tf.__version__)
+#print('TensorFlow Version: {}'.format(tf.__version__))
 
 # Check for a GPU
 if not tf.test.gpu_device_name():
@@ -53,14 +57,67 @@ tests.test_load_vgg(load_vgg, tf)
 def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     """
     Create the layers for a fully convolutional network.  Build skip-layers using the vgg layers.
-    :param vgg_layer7_out: TF Tensor for VGG Layer 3 output
+    :param vgg_layer3_out: TF Tensor for VGG Layer 3 output
     :param vgg_layer4_out: TF Tensor for VGG Layer 4 output
-    :param vgg_layer3_out: TF Tensor for VGG Layer 7 output
+    :param vgg_layer7_out: TF Tensor for VGG Layer 7 output
     :param num_classes: Number of classes to classify
     :return: The Tensor for the last layer of output
     """
-    # TODO: Implement function
-    return None
+
+    # based on Lesson 10-7 and 10-8
+    output = tf.layers.conv2d(
+        inputs=vgg_layer7_out,
+        filters=num_classes,
+        kernel_size=1,
+        padding='same',
+        kernel_initializer=tf.random_normal_initializer(stddev=0.01),
+        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+
+    output = tf.layers.conv2d_transpose(
+        inputs=output,
+        filters=num_classes,
+        kernel_size=4,
+        strides=2,
+        padding='same',
+        kernel_initializer=tf.random_normal_initializer(stddev=0.01),
+        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+
+    skip = tf.layers.conv2d(
+        vgg_layer4_out,
+        num_classes, 1,
+        padding='same',
+        kernel_initializer=tf.random_normal_initializer(stddev=0.01),
+        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+
+    output = tf.add(skip, output)
+
+    skip = tf.layers.conv2d(
+        vgg_layer3_out,
+        num_classes, 1,
+        padding='same',
+        kernel_initializer=tf.random_normal_initializer(stddev=0.01),
+        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+
+    output = tf.layers.conv2d_transpose(
+        inputs=output,
+        filters=num_classes,
+        kernel_size=4,
+        strides=2,
+        padding='same',
+        kernel_initializer=tf.random_normal_initializer(stddev=0.01),
+        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    output = tf.add(output, skip)
+
+    output = tf.layers.conv2d_transpose(
+        inputs=output,
+        filters=num_classes,
+        kernel_size=16,
+        strides=(8, 8),
+        padding='same',
+        kernel_initializer=tf.random_normal_initializer(stddev=0.01),
+        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+
+    return output
 tests.test_layers(layers)
 
 
