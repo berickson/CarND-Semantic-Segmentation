@@ -164,7 +164,9 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
                     keep_prob: 0.5,
                     learning_rate: 0.01}) #learning_rate
             epoch_loss += loss
-            print("epoch {0} loss: {1}".format(epoch, epoch_loss))
+            print("batch loss",loss)
+
+        print("epoch {0} loss: {1}".format(epoch, epoch_loss))
     
 tests.test_train_nn(train_nn)
 
@@ -203,10 +205,11 @@ def run():
         logits, train_op, cross_entropy_loss = optimize(final_layer, correct_label, learning_rate, num_classes)
 
         # TODO: Train NN using the train_nn function
+        sess.run(tf.global_variables_initializer())
         train_nn(
             sess,
             epochs=50,
-            batch_size=50,
+            batch_size=5,
             get_batches_fn=get_batches_fn,
             train_op=train_op,
             cross_entropy_loss=cross_entropy_loss,
