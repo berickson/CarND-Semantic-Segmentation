@@ -9,16 +9,10 @@ https://people.eecs.berkeley.edu/~jonlong/long_shelhamer_fcn.pdf
 
 import os.path
 import warnings
-from distutils.version import LooseVersion
 import tensorflow as tf
 import helper
 import project_tests as tests
 
-
-# Check TensorFlow Version
-#assert LooseVersion(tf.__version__) >= LooseVersion('1.0'), \
-#    'Please use TensorFlow version 1.0 or newer.  You are using {}'.format(tf.__version__)
-#print('TensorFlow Version: {}'.format(tf.__version__))
 
 # Check for a GPU
 if not tf.test.gpu_device_name():
